@@ -1,0 +1,366 @@
+{
+  "name": "Pre - entrega | Alerta automática de temperatura alta en Buenos Aires",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=-34.6037&longitude=-58.3816&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FArgentina%2FBuenos_Aires",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        -80
+      ],
+      "id": "fef1e90d-1b3b-4cbd-ac1d-7ad987b8b103",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -992,
+        -80
+      ],
+      "id": "bfe82f74-a0a3-4e9b-a65f-39516707fe58",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## Trigger automático.\nSe ejecuta cada 30 minutos",
+        "height": 288,
+        "width": 208,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "77dfab00-3f8d-4208-8d98-f547d8edcdfc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Se extrae datos.\n- Temperatura.\n- Humedad.\n- Fecha y hora.\n- Zona horaria",
+        "height": 304,
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -592,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "9ba2ae56-a4cf-4b91-99db-c732d0df7489",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Pre-entrega Alerta automática de temperatura alta en Buenos Aires\n\nLógica:\n\nSchedule\n→ HTTP Request (Open-Meteo)\n→ Set (extraer temperatura actual)\n→ IF (¿temperatura > X?)\n→ Notificación",
+        "height": 208,
+        "width": 816,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1024,
+        -464
+      ],
+      "typeVersion": 1,
+      "id": "dd7ae8ea-3878-467c-953c-ab40d93ec5a7",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7a2fea1-6315-423f-944b-631682fb5175",
+              "name": "Temperatura",
+              "value": "={{ $json.current.temperature_2m }}",
+              "type": "number"
+            },
+            {
+              "id": "aafadbeb-af80-4e89-ac6e-3eddf22bf9e7",
+              "name": "Humedad",
+              "value": "={{ $json.current.relative_humidity_2m }}",
+              "type": "number"
+            },
+            {
+              "id": "4c27182e-c7c7-489a-9ba4-bc91e9102a86",
+              "name": "Fecha y hora",
+              "value": "={{ $json.current.time }}",
+              "type": "string"
+            },
+            {
+              "id": "b9273f5b-a793-4201-83b4-0336fd17ee28",
+              "name": "Zona horaria",
+              "value": "={{ $json.timezone }} {{ $json.timezone_abbreviation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        -80
+      ],
+      "id": "fbe88e9e-4974-4a0d-81a6-593657a67d9f",
+      "name": "Manejo de datos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "35f77443-bd01-487c-b8d4-7cea4b4ee605",
+              "leftValue": "={{ $json.Temperatura }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        -64
+      ],
+      "id": "8686a9b0-a170-4c98-b22f-da75d4d84c21",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "## Condicional obligatorio.\n(Temperatura > 30°C)\n  → TRUE → Email + Telegram\n  → FALSE → Set (Log registro)",
+        "height": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -336,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "c563b130-127d-4317-9452-4fe362ea7774",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "chatId": "1152308763",
+        "text": "=🔥 ALERTA CLIMA 🔥\n\n📍 Ciudad: Buenos Aires\n🌡 Temperatura: {{$json[\"Temperatura en °C\"]}}°C\n💧 Humedad: {{$json[\"Humedad en %\"]}}%\n🕒 Fecha: {{$json[\"Fecha y hora\"]}}\n\nEnviado automáticamente por n8n/localhost-HernánWolker/Pre-entrega.\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        -192
+      ],
+      "id": "97b503fc-014d-44a0-b9c8-ee975504467b",
+      "name": "Send a text message",
+      "webhookId": "4809d6e9-44ab-4fd8-9775-a5e24649626f",
+      "credentials": {
+        "telegramApi": {
+          "id": "tnaN8qhHxYH0o1aG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "hernanwolker@gmail.com",
+        "subject": "=Alerta de temperatura alta en Buenos Aires",
+        "message": "=<h2>🌡 Alerta de temperatura alta 🌡</h2>\n\n<p><strong>Ciudad:</strong> Buenos Aires</p>\n<p><strong>Temperatura:</strong> {{$json[\"Temperatura\"]}} °C</p>\n<p><strong>Humedad:</strong> {{$json[\"Humedad\"]}} %</p>\n<p><strong>Fecha:</strong> {{$json[\"Fecha y hora\"]}}</p>\n\n<hr>\n<p>Enviado automáticamente por localhost de n8n.</p>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -384
+      ],
+      "id": "d386b379-5227-4ba3-88f5-881535af5e3d",
+      "name": "Send a message",
+      "webhookId": "e017a7e1-5624-4cb0-8a21-d61a83effcf8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0sc02gtAz1riALF0",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1103bfd-9108-4cb8-97c9-3d4d5a405f41",
+              "name": "Fecha y hora",
+              "value": "={{ $json['Fecha y hora'] }}",
+              "type": "string"
+            },
+            {
+              "id": "24252d7e-05d9-408c-be6b-9b80d1b8f8f9",
+              "name": "Temperatura",
+              "value": "={{ $json.Temperatura }}",
+              "type": "number"
+            },
+            {
+              "id": "9849911b-80cc-4071-88fa-8d1d1d3cf3f6",
+              "name": "Humedad",
+              "value": "={{ $json.Humedad }}",
+              "type": "number"
+            },
+            {
+              "id": "25378f4e-7456-40f9-bd93-4d49460ae791",
+              "name": "Estado",
+              "value": "={{ $('HTTP Request').item.json.current.weather_code }}",
+              "type": "number"
+            },
+            {
+              "id": "cc42316a-9bf4-4599-b0ee-6b86676495ed",
+              "name": "Mensaje",
+              "value": "Temperatura dentro del rango normal",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        48
+      ],
+      "id": "9349fe14-3d71-4a23-837a-926b92a98778",
+      "name": "Log registro"
+    },
+    {
+      "parameters": {
+        "content": "## Envío notificaciones",
+        "height": 448,
+        "width": 272,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        -464
+      ],
+      "typeVersion": 1,
+      "id": "25ebfbe1-921d-4eb1-8e30-99aa4323a2d1",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Manejo de datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manejo de datos": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log registro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0a62c6ed-27fe-4b18-a840-22d417a53d7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d5ed1405bf6f8ae87120c3c3f5ea7fda3d757a02fcba4d7860a7a7f40a47b08e"
+  },
+  "id": "QTL8hJwthbrMTLAomrgYR",
+  "tags": []
+}
