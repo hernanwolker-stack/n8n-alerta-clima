@@ -1,4 +1,4 @@
-# Pre-entrega – Sistema de alerta automática de temperatura en Buenos Aires
+# Sistema de alerta automática de temperatura en Buenos Aires
 
 Workflow en n8n que consulta la API Open-Meteo y envía alertas automáticas si la temperatura supera los 30°C.
 
